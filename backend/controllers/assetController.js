@@ -1,21 +1,30 @@
 const Asset = require("../models/Asset");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
-const { logActivity, getChangesDescription } = require("../utils/helper");
+const {
+  logActivity,
+  getChangesDescription,
+  emitEvent,
+} = require("../utils/helper");
 
 exports.createAsset = catchAsync(async (req, res, next) => {
-  const asset = await Asset.create(req.body);
+  const newAsset = await Asset.create(req.body);
 
+  const activityObject = {
+    assetSerialNumber: newAsset.serialNumber,
+    instanceOf: "Asset",
+    type: "asset_created",
+    description: `Asset "${newAsset.name}" created.`,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    asset,
-    description: `Asset "${asset.name}" created.`,
-    type: "asset_created",
-    room: "assetPageRoom",
+    activityObject,
   });
 
-  res.status(201).json({ status: "success", data: asset });
+  emitEvent(req, "asset_created", newAsset, "AssetRoom");
+
+  res.status(201).json({ status: "success", data: newAsset });
 });
 
 exports.updateAsset = catchAsync(async (req, res, next) => {
@@ -33,14 +42,19 @@ exports.updateAsset = catchAsync(async (req, res, next) => {
 
   const description = getChangesDescription(oldAsset, req.body, "Asset");
 
+  const activityObject = {
+    assetSerialNumber: updatedAsset.serialNumber,
+    instanceOf: "Asset",
+    type: "asset_updated",
+    description,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    asset: updatedAsset,
-    description,
-    type: "asset_updated",
-    room: "assetPageRoom",
+    activityObject,
   });
+
+  emitEvent(req, "asset_updated", updatedAsset, "AssetRoom");
 
   res.status(200).json({ status: "success", data: updatedAsset });
 });
@@ -49,14 +63,19 @@ exports.deleteAsset = catchAsync(async (req, res, next) => {
   const asset = await Asset.findByIdAndDelete(req.params.assetId);
   if (!asset) return next(new AppError("Asset not found", 404));
 
+  const activityObject = {
+    assetSerialNumber: asset.serialNumber,
+    instanceOf: "Asset",
+    type: "asset_deleted",
+    description: `Asset "${asset.name}" deleted.`,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    asset,
-    description: `Asset "${asset.name}" deleted.`,
-    type: "asset_deleted",
-    room: "assetPageRoom",
+    activityObject,
   });
+
+  emitEvent(req, "asset_deleted", asset, "AssetRoom");
 
   res.status(204).json({ status: "success", data: null });
 });

@@ -2,25 +2,34 @@ const mongoose = require("mongoose");
 
 const activitySchema = new mongoose.Schema(
   {
-    assetId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Asset",
-      required: true,
+    assetSerialNumber: {
+      type: String,
     },
-    performedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
+    userId: {
+      type: String,
+    },
+    departmentCode: {
+      type: String,
+    },
+    vendorCode: {
+      type: String,
+    },
+    instanceOf: {
+      type: String,
+      enum: ["Assset", "Department", "Vendor", "User"],
+      required: [true, "Activity instance of is required"],
     },
     type: {
       type: String,
-      enum: ["repair", "update", "transfer", "note"],
-      default: "note",
     },
     description: {
       type: String,
       required: [true, "Activity description is required"],
       trim: true,
+    },
+    performedBy: {
+      type: String,
+      required: [true, "Activity performedby is required"],
     },
     date: {
       type: Date,

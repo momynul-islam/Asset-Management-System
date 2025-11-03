@@ -1,3 +1,6 @@
+const Activity = require("../models/Activity");
+const AppError = require("./AppError");
+
 exports.filterObj = (obj, ...allowedFields) => {
   const newObj = {};
   Object.keys(obj).forEach((el) => {
@@ -41,22 +44,12 @@ exports.emitEvent = (req, event, data, room = null) => {
   }
 };
 
-exports.logActivity = async ({ req, user, asset, description, type, room }) => {
+exports.logActivity = async ({ req, activityObject }) => {
   try {
-    const activity = await Activity.create({
-      user: user?._id,
-      performedBy: user?.name || "System",
-      asset: asset?._id,
-      assetName: asset?.name,
-      serialNumber: asset?.serialNumber,
-      description,
-      type,
-      createdAt: new Date(),
-    });
+    const activity = await Activity.create(activityObject);
 
-    // Emit to room if provided, else broadcast to all
-    exports.emitEvent(req, type, activity, room || "activityPageRoom");
+    this.emitEvent(req, "activity_created", activity, "ActivityRoom");
   } catch (err) {
-    console.error("❌ Error logging activity:", err.message);
+    console.error("Error logging activity:", err.message);
   }
 };

@@ -1,20 +1,30 @@
 const Vendor = require("../models/Vendor");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
-const { logActivity, getChangesDescription } = require("../utils/helper");
+const {
+  logActivity,
+  getChangesDescription,
+  emitEvent,
+} = require("../utils/helper");
 
 exports.createVendor = catchAsync(async (req, res) => {
-  const vendor = await Vendor.create(req.body);
+  const newVendor = await Vendor.create(req.body);
 
+  const activityObject = {
+    vendorCode: newVendor.vendorCode,
+    instanceOf: "Vendor",
+    type: "vendor_created",
+    description: `Vendor "${newVendor.name}" created.`,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    description: `Vendor "${vendor.name}" created.`,
-    type: "vendor_created",
-    room: "vendorPageRoom",
+    activityObject,
   });
 
-  res.status(201).json({ status: "success", data: vendor });
+  emitEvent(req, "vendor_created", newVendor, "VendorRoom");
+
+  res.status(201).json({ status: "success", data: newVendor });
 });
 
 exports.updateVendor = catchAsync(async (req, res, next) => {
@@ -32,13 +42,19 @@ exports.updateVendor = catchAsync(async (req, res, next) => {
 
   const description = getChangesDescription(oldVendor, req.body, "Vendor");
 
+  const activityObject = {
+    vendorCode: updatedVendor.vendorCode,
+    instanceOf: "Vendor",
+    type: "vendor_updated",
+    description: `Vendor "${updatedVendor.name}" updated.`,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    description,
-    type: "vendor_updated",
-    room: "vendorPageRoom",
+    activityObject,
   });
+
+  emitEvent(req, "vendor_updated", updatedVendor, "VendorRoom");
 
   res.status(200).json({ status: "success", data: updatedVendor });
 });
@@ -47,13 +63,19 @@ exports.deleteVendor = catchAsync(async (req, res, next) => {
   const vendor = await Vendor.findByIdAndDelete(req.params.id);
   if (!vendor) return next(new AppError("Vendor not found", 404));
 
+  const activityObject = {
+    vendorCode: vendor.vendorCode,
+    instanceOf: "Vendor",
+    type: "vendor_deleted",
+    description: `Vendor "${vendor.name}" deleted.`,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    description: `Vendor "${vendor.name}" deleted.`,
-    type: "vendor_deleted",
-    room: "vendorPageRoom",
+    activityObject,
   });
+
+  emitEvent(req, "vendor_deleted", vendor, "VendorRoom");
 
   res.status(204).json({ status: "success", data: null });
 });

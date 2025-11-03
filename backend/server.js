@@ -1,10 +1,47 @@
+const http = require("http");
+
 const mongoose = require("mongoose");
+const { Server } = require("socket.io");
+const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
-const { app, io } = require("./app");
-const { Socket } = require("socket.io");
+const app = require("./app");
 
 const port = process.env.PORT || 3000;
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PATCH", "DELETE"],
+    credentials: true,
+  },
+});
+
+app.set("io", io);
+
+io.use((socket, next) => {
+  const token = socket.handshake.headers.cookie
+    ?.split("; ")
+    .find((c) => c.startsWith("jwt="))
+    ?.split("=")[1];
+
+  if (!token) {
+    const err = new Error("No token provided");
+    err.data = { type: "AUTH_ERROR", message: "Authentication required" };
+    return next(err);
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    // socket.user = decoded;
+    next();
+  } catch (err) {
+    const error = new Error("Invalid or expired token");
+    error.data = { type: "AUTH_ERROR", message: "Session expired" };
+    next(error);
+  }
+});
 
 mongoose
   .connect(process.env.DATABASE)
@@ -29,10 +66,8 @@ mongoose
       });
     });
 
-    app.listen(port, () => {
-      console.log(`Asset Management server listening at port ${port}...`);
+    server.listen(port, () => {
+      console.log(`Server running on port ${port}...`);
     });
   })
-  .catch((err) => {
-    console.log("Error connecting to the database", err);
-  });
+  .catch((err) => console.log("DB connection error:", err));

@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const vendorSchema = new mongoose.Schema(
   {
+    vendorCode: {
+      type: String,
+      required: [true, "Vendor code is required"],
+    },
     name: {
       type: String,
       required: [true, "Vendor name is required"],

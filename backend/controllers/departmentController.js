@@ -1,27 +1,37 @@
 const Department = require("../models/Department");
 const catchAsync = require("../utils/catchAsync");
 const AppError = require("../utils/AppError");
-const { logActivity, getChangesDescription } = require("../utils/helper");
+const {
+  logActivity,
+  getChangesDescription,
+  emitEvent,
+} = require("../utils/helper");
 
 exports.createDepartment = catchAsync(async (req, res) => {
-  const department = await Department.create(req.body);
+  const newDepartment = await Department.create(req.body);
 
+  const activityObject = {
+    departmentCode: newDepartment.departmentCode,
+    instanceOf: "Department",
+    type: "department_created",
+    description: `Department "${newDepartment.name}" created.`,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    description: `Department "${department.name}" created.`,
-    type: "department_created",
-    room: "departmentPageRoom",
+    activityObject,
   });
 
-  res.status(201).json({ status: "success", data: department });
+  emitEvent(req, "department_created", newDepartment, "DepartmentRoom");
+
+  res.status(201).json({ status: "success", data: newDepartment });
 });
 
 exports.updateDepartment = catchAsync(async (req, res, next) => {
-  const oldDept = await Department.findById(req.params.id);
-  if (!oldDept) return next(new AppError("Department not found", 404));
+  const oldDepartment = await Department.findById(req.params.id);
+  if (!oldDepartment) return next(new AppError("Department not found", 404));
 
-  const updatedDept = await Department.findByIdAndUpdate(
+  const updatedDepartment = await Department.findByIdAndUpdate(
     req.params.id,
     req.body,
     {
@@ -30,30 +40,46 @@ exports.updateDepartment = catchAsync(async (req, res, next) => {
     }
   );
 
-  const description = getChangesDescription(oldDept, req.body, "Department");
+  const description = getChangesDescription(
+    oldDepartment,
+    req.body,
+    "Department"
+  );
 
+  const activityObject = {
+    departmentCode: updatedDepartment.departmentCode,
+    instanceOf: "Department",
+    type: "department_updated",
+    description,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    description,
-    type: "department_updated",
-    room: "departmentPageRoom",
+    activityObject,
   });
 
-  res.status(200).json({ status: "success", data: updatedDept });
+  emitEvent(req, "department_updated", updatedDepartment, "DepartmentRoom");
+
+  res.status(200).json({ status: "success", data: updatedDepartment });
 });
 
 exports.deleteDepartment = catchAsync(async (req, res, next) => {
   const department = await Department.findByIdAndDelete(req.params.id);
   if (!department) return next(new AppError("Department not found", 404));
 
+  const activityObject = {
+    departmentCode: department.departmentCode,
+    instanceOf: "Department",
+    type: "department_deleted",
+    description: `Department "${department.name}" deleted.`,
+    performedBy: req.user.name,
+  };
   await logActivity({
     req,
-    user: req.user,
-    description: `Department "${department.name}" deleted.`,
-    type: "department_deleted",
-    room: "departmentPageRoom",
+    activityObject,
   });
+
+  emitEvent(req, "department_deleted", department, "DepartmentRoom");
 
   res.status(204).json({ status: "success", data: null });
 });

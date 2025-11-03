@@ -1,7 +1,4 @@
 const jwt = require("jsonwebtoken");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
-const { promisify } = require("util");
 
 const User = require("../models/User");
 const AppError = require("../utils/AppError");
@@ -13,39 +10,47 @@ const signToken = (id) => {
   });
 };
 
-const createSendToken = catchAsync(async (user, statusCode, req, res) => {
+const createSendToken = (user, statusCode, req, res, mood) => {
   const token = signToken(user._id);
 
-  res.cookie("jwt", token, {
-    expires: new Date(
-      Date.now() +
-        (process.env.JWT_COOKIE_EXPIRES_IN || 7) * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-    secure: req.secure || req.headers["x-forwarded-proto"] === "https",
-  });
+  if (mood === "login") {
+    res.cookie("jwt", token, {
+      expires: new Date(
+        Date.now() +
+          (process.env.JWT_COOKIE_EXPIRES_IN || 7) * 24 * 60 * 60 * 1000
+      ),
+      httpOnly: true,
+      secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+    });
+  }
 
   user.password = undefined; // Remove password before sending
 
+  if (mood === "login") {
+    return res.status(statusCode).json({
+      status: "success",
+      token,
+      user,
+    });
+  }
   res.status(statusCode).json({
     status: "success",
-    token,
     user,
   });
-});
+};
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const { name, email, password, role, department } = req.body;
+  const { name, email, password, role, designation } = req.body;
 
   const newUser = await User.create({
     name,
     email,
     password,
+    designation,
     role,
-    department,
   });
 
-  createSendToken(newUser, 201, req, res);
+  createSendToken(newUser, 201, req, res, "signup");
 });
 
 exports.login = catchAsync(async (req, res, next) => {
@@ -61,7 +66,7 @@ exports.login = catchAsync(async (req, res, next) => {
     return next(new AppError("Incorrect email or password", 401));
   }
 
-  createSendToken(user, 200, req, res);
+  createSendToken(user, 200, req, res, "login");
 });
 
 exports.logout = (req, res) => {

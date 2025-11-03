@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const departmentSchema = new mongoose.Schema(
   {
+    departmentCode: {
+      type: String,
+      required: [true, "Department code is required"],
+    },
     name: {
       type: String,
       required: [true, "Department name is required"],
