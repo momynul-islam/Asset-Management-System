@@ -8,13 +8,15 @@ const {
 } = require("../utils/helper");
 
 exports.createAsset = catchAsync(async (req, res, next) => {
-  const newAsset = await Asset.create(req.body);
+  const newAsset = await (
+    await Asset.create(req.body)
+  ).populate("assignedDepartment assignedUser vendor");
 
   const activityObject = {
     assetSerialNumber: newAsset.serialNumber,
     instanceOf: "Asset",
     type: "asset_created",
-    description: `Asset "${newAsset.name}" created.`,
+    description: `Asset "${newAsset.assetName}" created.`,
     performedBy: req.user.name,
   };
   await logActivity({
@@ -38,7 +40,7 @@ exports.updateAsset = catchAsync(async (req, res, next) => {
       new: true,
       runValidators: true,
     }
-  );
+  ).populate("assignedDepartment assignedUser vendor");
 
   const description = getChangesDescription(oldAsset, req.body, "Asset");
 
@@ -82,15 +84,18 @@ exports.deleteAsset = catchAsync(async (req, res, next) => {
 
 exports.getAllAssets = catchAsync(async (req, res) => {
   const assets = await Asset.find().populate(
-    "department assignedDepartment assignedUser vendor"
+    "assignedDepartment assignedUser vendor"
   );
+
   res.status(200).json({ status: "success", data: assets });
 });
 
 exports.getAsset = catchAsync(async (req, res, next) => {
   const asset = await Asset.findById(req.params.assetId).populate(
-    "department assignedDepartment assignedUser vendor"
+    "assignedDepartment assignedUser vendor"
   );
+
   if (!asset) return next(new AppError("Asset not found", 404));
+
   res.status(200).json({ status: "success", data: asset });
 });

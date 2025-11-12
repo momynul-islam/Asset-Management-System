@@ -1,8 +1,12 @@
 import React from "react";
 
+import { useNavigate } from "react-router";
 import { FiLogOut, FiMenu } from "react-icons/fi";
+import { FaUserCircle } from "react-icons/fa";
 
 function Header({ sidebarOpen, setSidebarOpen, currentUser, logoutUser }) {
+  const navigate = useNavigate();
+
   return (
     <header className="flex items-center justify-between h-16 px-4 bg-gray-800 shadow-md border-b border-gray-700">
       <button
@@ -20,17 +24,13 @@ function Header({ sidebarOpen, setSidebarOpen, currentUser, logoutUser }) {
             <div
               className="flex gap-2 items-center cursor-pointer group"
               onClick={() => {
-                console.log("navigate to profile page");
+                navigate("/profile");
               }}
             >
-              <span className="font-medium text-gray-100 group-hover:text-red-500">
+              <span className="font-medium text-gray-100 group-hover:text-green-500">
                 {currentUser.name}
               </span>
-              <img
-                src={"logo.png"}
-                alt="profile"
-                className="w-10 h-10 rounded-full object-cover border-2 group-hover:border-red-500"
-              />
+              <FaUserCircle className="group-hover:text-green-500" />
             </div>
             <button
               onClick={() => {

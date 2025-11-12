@@ -9,12 +9,24 @@ exports.filterObj = (obj, ...allowedFields) => {
   return newObj;
 };
 
+function formatDate(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (isNaN(d)) return value;
+  return d.toISOString().split("T")[0];
+}
+
 exports.getChangesDescription = (oldDoc, newData, entityName = "Item") => {
   const changes = [];
 
   Object.keys(newData).forEach((key) => {
-    const oldValue = oldDoc[key];
-    const newValue = newData[key];
+    let oldValue = oldDoc[key];
+    let newValue = newData[key];
+
+    if (oldValue instanceof Date || newValue instanceof Date) {
+      oldValue = formatDate(oldValue);
+      newValue = formatDate(newValue);
+    }
 
     if (oldValue?.toString() !== newValue?.toString()) {
       changes.push(
@@ -24,7 +36,7 @@ exports.getChangesDescription = (oldDoc, newData, entityName = "Item") => {
   });
 
   return changes.length > 0
-    ? `${entityName} updated: ${changes.join(", ")}`
+    ? `${changes.join(", ")}`
     : `${entityName} updated.`;
 };
 

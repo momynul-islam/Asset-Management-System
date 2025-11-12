@@ -53,15 +53,12 @@ const assetSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-    image: {
-      type: String,
-    },
-    attachment: {
+    branch: {
       type: String,
     },
     status: {
       type: String,
-      enum: ["active", "in-repair", "retired", "lost"],
+      enum: ["active", "in-repair", "inactive", "lost"],
       default: "active",
     },
   },

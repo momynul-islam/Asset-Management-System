@@ -2,7 +2,7 @@ import apiClient from "./apiClient";
 
 export const getAllAssets = async () => {
   const res = await apiClient.get("/assets");
-  return res.data;
+  return res.data.data;
 };
 
 export const getAsset = async (id) => {
@@ -22,5 +22,5 @@ export const updateAsset = async (id, updatedData) => {
 
 export const deleteAsset = async (id) => {
   const res = await apiClient.delete(`/assets/${id}`);
-  return res.data;
+  return res;
 };

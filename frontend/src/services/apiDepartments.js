@@ -2,7 +2,7 @@ import apiClient from "./apiClient";
 
 export const getAllDepartments = async () => {
   const res = await apiClient.get("/departments");
-  return res.data;
+  return res.data.data;
 };
 
 export const getDepartment = async (id) => {
@@ -22,5 +22,5 @@ export const updateDepartment = async (id, data) => {
 
 export const deleteDepartment = async (id) => {
   const res = await apiClient.delete(`/departments/${id}`);
-  return res.data;
+  return res;
 };

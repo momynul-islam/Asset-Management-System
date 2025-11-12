@@ -27,7 +27,6 @@ socket.on("connect_error", (err) => {
 });
 
 export const joinRoom = (roomName) => {
-  console.log("j");
   if (socket.connected) {
     socket.emit("joinRoom", roomName);
     console.log(`Joined room: ${roomName}`);

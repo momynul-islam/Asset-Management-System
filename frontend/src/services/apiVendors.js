@@ -2,7 +2,7 @@ import apiClient from "./apiClient";
 
 export const getAllVendors = async () => {
   const res = await apiClient.get("/vendors");
-  return res.data;
+  return res.data.data;
 };
 
 export const getVendor = async (id) => {
@@ -22,5 +22,5 @@ export const updateVendor = async (id, data) => {
 
 export const deleteVendor = async (id) => {
   const res = await apiClient.delete(`/vendors/${id}`);
-  return res.data;
+  return res;
 };

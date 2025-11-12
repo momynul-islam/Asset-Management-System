@@ -2,39 +2,44 @@ import React, { useState, useEffect } from "react";
 
 import toast from "react-hot-toast";
 
-import { createUser, updateUser } from "../../services/apiUsers";
+import {
+  createDepartment,
+  updateDepartment,
+} from "../../services/apiDepartments";
+import { getAllUsers } from "../../services/apiUsers";
 
-const UserModal = ({ mode = "add", user, closeModal }) => {
+function DepartmentModal({ mode = "add", department, closeModal }) {
   const [formData, setFormData] = useState({
-    userId: "",
+    departmentCode: "",
     name: "",
-    email: "",
-    password: "",
-    designation: "",
-    role: "user",
+    description: "",
+    headOfDepartment: "",
+    status: "active",
   });
+  const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (mode === "edit" && user) {
+    const fetchUsers = async () => {
+      try {
+        const res = await getAllUsers();
+        setUsers(res || []);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchUsers();
+
+    if (mode === "edit" && department) {
       setFormData({
-        userId: user.userId || "",
-        name: user.name || "",
-        email: user.email || "",
-        designation: user.designation || "",
-        role: user.role || "user",
-      });
-    } else {
-      setFormData({
-        userId: "",
-        name: "",
-        email: "",
-        password: "",
-        designation: "",
-        role: "user",
+        departmentCode: department.departmentCode || "",
+        name: department.name || "",
+        description: department.description || "",
+        headOfDepartment: department.headOfDepartment._id || "",
+        status: department.status || "active",
       });
     }
-  }, [mode, user]);
+  }, [mode, department]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -45,32 +50,25 @@ const UserModal = ({ mode = "add", user, closeModal }) => {
     setLoading(true);
 
     try {
+      let res;
       if (mode === "edit") {
-        const res = await updateUser(user._id, formData);
+        res = await updateDepartment(department._id, formData);
 
-        if (res.status === "success") {
-          toast.success("Successfully updated the user");
-        } else {
-          toast.error("Error in updating the user", res?.message);
-        }
+        res.status === "success"
+          ? toast.success("Department updated")
+          : toast.error("Update failed");
       } else {
-        const res = await createUser(formData);
+        res = await createDepartment(formData);
 
-        if (res.status === "success") {
-          toast.success("Successfully added a new user");
-        } else {
-          toast.error("Error in adding a new user", res?.message);
-        }
+        res.status === "success"
+          ? toast.success("Department created")
+          : toast.error("Creation failed");
       }
 
       closeModal();
     } catch (err) {
       console.log(err);
-      if (mode === "edit") {
-        toast.error("Error in editng user");
-      } else {
-        toast.error("Error in creating user");
-      }
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -81,21 +79,18 @@ const UserModal = ({ mode = "add", user, closeModal }) => {
       <div className="bg-gray-900 text-gray-100 rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-lg">
         <div className="p-4 border-b border-gray-700">
           <h2 className="text-xl font-semibold">
-            {mode === "edit" ? "Edit User" : "Add User"}
+            {mode === "edit" ? "Edit Department" : "Add Department"}
           </h2>
         </div>
 
         <div className="overflow-y-auto p-6">
-          <form
-            onSubmit={handleSubmit}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
-          >
+          <form className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm mb-1">User ID</label>
+              <label className="block text-sm mb-1">Department Code</label>
               <input
                 type="text"
-                name="userId"
-                value={formData.userId}
+                name="departmentCode"
+                value={formData.departmentCode}
                 onChange={handleChange}
                 className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
               />
@@ -113,50 +108,43 @@ const UserModal = ({ mode = "add", user, closeModal }) => {
             </div>
 
             <div>
-              <label className="block text-sm mb-1">Email</label>
-              <input
-                type="email"
-                name="email"
-                value={formData.email}
-                onChange={handleChange}
-                className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
-              />
-            </div>
-
-            {mode !== "edit" && (
-              <div>
-                <label className="block text-sm mb-1">Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm mb-1">Designation</label>
-              <input
-                type="text"
-                name="designation"
-                value={formData.designation}
-                onChange={handleChange}
-                className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm mb-1">Role</label>
+              <label className="block text-sm mb-1">Head of Department</label>
               <select
-                name="role"
-                value={formData.role}
+                name="headOfDepartment"
+                value={formData.headOfDepartment}
                 onChange={handleChange}
                 className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
               >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
+                <option value="">-- Select User --</option>
+                {users.map((user) => (
+                  <option key={user._id} value={user._id}>
+                    {user.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-span-1 sm:col-span-2 lg:col-span-3">
+              <label className="block text-sm mb-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={3}
+                className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm mb-1">Status</label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
+              >
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
               </select>
             </div>
           </form>
@@ -164,7 +152,6 @@ const UserModal = ({ mode = "add", user, closeModal }) => {
 
         <div className="p-4 border-t border-gray-700 flex justify-end gap-2">
           <button
-            type="button"
             onClick={closeModal}
             className="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600"
           >
@@ -181,6 +168,6 @@ const UserModal = ({ mode = "add", user, closeModal }) => {
       </div>
     </div>
   );
-};
+}
 
-export default UserModal;
+export default DepartmentModal;

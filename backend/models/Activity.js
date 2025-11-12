@@ -16,7 +16,7 @@ const activitySchema = new mongoose.Schema(
     },
     instanceOf: {
       type: String,
-      enum: ["Assset", "Department", "Vendor", "User"],
+      enum: ["Asset", "Department", "Vendor", "User"],
       required: [true, "Activity instance of is required"],
     },
     type: {

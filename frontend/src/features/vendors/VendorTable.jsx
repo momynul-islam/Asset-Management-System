@@ -5,65 +5,64 @@ import toast from "react-hot-toast";
 
 import Spinner from "../../components/Spinner";
 import { useAuth } from "../../contexts/AuthContext";
-import { deleteUser } from "../../services/apiUsers";
+import { deleteVendor } from "../../services/apiVendors";
 import TableHeader from "../../components/TableHeader";
 import TableBody from "../../components/TableBody";
 import ViewModal from "../../components/ViewModal";
-import UserModal from "./UserModal";
+import VendorModal from "./VendorModal";
 
-const UserTable = ({ users, isLoading, isError }) => {
+const VendorTable = ({ vendors, isLoading, isError }) => {
   const { currentUser } = useAuth();
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedVendor, setSelectedVendor] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
 
-  const handleEditClick = (user) => {
+  const handleEditClick = (vendor) => {
     if (currentUser.role != "admin") {
-      return toast.error("You don't have permission to edit user");
+      return toast.error("You don't have permission");
     }
 
-    setSelectedUser(user);
+    setSelectedVendor(vendor);
     setMode("edit");
     setIsModalOpen(true);
   };
 
-  const handleDeleteClick = async (user) => {
+  const handleDeleteClick = async (vendor) => {
     if (currentUser.role != "admin") {
-      return toast.error("You don't have permission to delete user");
+      return toast.error("You don't have permission");
     }
 
-    const res = await deleteUser(user._id);
+    const res = await deleteVendor(vendor._id);
 
-    if (res.status === 204) {
-      toast.success("User deleted successfully");
-    } else {
-      toast.error("User deletion failed");
-    }
+    res.status === 204
+      ? toast.success("Vendor deleted")
+      : toast.error("Failed");
   };
 
-  const handleViewClick = (user) => {
-    setSelectedUser(user);
+  const handleViewClick = (vendor) => {
+    setSelectedVendor(vendor);
     setIsViewModalOpen(true);
   };
 
   const handleAddClick = () => {
     if (currentUser.role != "admin") {
-      return toast.error("You don't have permission to add user");
+      return toast.error("You don't have permission");
     }
 
-    setSelectedUser(null);
     setMode("add");
+    setSelectedVendor(null);
     setIsModalOpen(true);
   };
 
   if (isLoading) {
     return <Spinner />;
   }
-
   if (isError) {
     return (
-      <div className="text-red-500 text-center py-10">Error loading users.</div>
+      <div className="text-red-500 text-center py-10">
+        Error loading vendors.
+      </div>
     );
   }
 
@@ -71,11 +70,11 @@ const UserTable = ({ users, isLoading, isError }) => {
     <>
       <div className="flex justify-end mb-4">
         <button
-          className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md text-gray-100"
           onClick={handleAddClick}
+          className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md text-gray-100"
         >
           <FiPlus size={18} />
-          <span>Add User</span>
+          <span>Add Vendor</span>
         </button>
       </div>
 
@@ -83,19 +82,29 @@ const UserTable = ({ users, isLoading, isError }) => {
         <table className="min-w-full divide-y divide-gray-700">
           <TableHeader
             headerTitles={[
-              "user id",
+              "vendor code",
               "name",
+              "contact person",
+              "phone",
               "email",
-              "designation",
-              "role",
+              "address",
+              "status",
               "actions",
             ]}
           />
           <TableBody
-            fields={["userId", "name", "email", "designation", "role"]}
-            data={users}
-            statusField={false}
-            label="user"
+            fields={[
+              "vendorCode",
+              "name",
+              "contactPerson",
+              "phone",
+              "email",
+              "address",
+              "status",
+            ]}
+            statusField={true}
+            data={vendors}
+            label="vendor"
             handleViewClick={handleViewClick}
             handleEditClick={handleEditClick}
             handleDeleteClick={handleDeleteClick}
@@ -105,17 +114,27 @@ const UserTable = ({ users, isLoading, isError }) => {
 
       {isViewModalOpen && (
         <ViewModal
-          title="User Details"
-          data={selectedUser}
-          fields={["userId", "name", "email", "designation", "role"]}
+          title="Vendor Details"
+          data={selectedVendor}
+          fields={[
+            "vendorCode",
+            "name",
+            "contactPerson",
+            "phone",
+            "email",
+            "address",
+            "website",
+            "status",
+            "notes",
+          ]}
           closeModal={() => setIsViewModalOpen(false)}
         />
       )}
 
       {isModalOpen && (
-        <UserModal
+        <VendorModal
           mode={mode}
-          user={selectedUser}
+          vendor={selectedVendor}
           closeModal={() => setIsModalOpen(false)}
         />
       )}
@@ -123,4 +142,4 @@ const UserTable = ({ users, isLoading, isError }) => {
   );
 };
 
-export default UserTable;
+export default VendorTable;

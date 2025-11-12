@@ -20,7 +20,7 @@ function Login() {
       await loginUser(email, password);
       navigate("/");
     } catch (err) {
-      setError(err.message || "Invalid credentials");
+      setError(err.response.data.message || "Invalid credentials");
     } finally {
       setLoading(false);
     }

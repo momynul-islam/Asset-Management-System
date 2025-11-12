@@ -28,11 +28,11 @@ exports.createVendor = catchAsync(async (req, res) => {
 });
 
 exports.updateVendor = catchAsync(async (req, res, next) => {
-  const oldVendor = await Vendor.findById(req.params.id);
+  const oldVendor = await Vendor.findById(req.params.vendorId);
   if (!oldVendor) return next(new AppError("Vendor not found", 404));
 
   const updatedVendor = await Vendor.findByIdAndUpdate(
-    req.params.id,
+    req.params.vendorId,
     req.body,
     {
       new: true,
@@ -46,7 +46,7 @@ exports.updateVendor = catchAsync(async (req, res, next) => {
     vendorCode: updatedVendor.vendorCode,
     instanceOf: "Vendor",
     type: "vendor_updated",
-    description: `Vendor "${updatedVendor.name}" updated.`,
+    description,
     performedBy: req.user.name,
   };
   await logActivity({
@@ -60,7 +60,7 @@ exports.updateVendor = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteVendor = catchAsync(async (req, res, next) => {
-  const vendor = await Vendor.findByIdAndDelete(req.params.id);
+  const vendor = await Vendor.findByIdAndDelete(req.params.vendorId);
   if (!vendor) return next(new AppError("Vendor not found", 404));
 
   const activityObject = {
@@ -89,7 +89,7 @@ exports.getAllVendors = catchAsync(async (req, res, next) => {
 });
 
 exports.getVendor = catchAsync(async (req, res, next) => {
-  const vendor = await Vendor.findById(req.params.id);
+  const vendor = await Vendor.findById(req.params.vendorId);
   if (!vendor) return next(new AppError("Vendor not found with this id", 404));
 
   res.status(200).json({ status: "success", data: vendor });

@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 
 const authRouter = require("./routes/authRoutes");
+const dashboardRouter = require("./routes/dashboardRoutes");
 const departmentRouter = require("./routes/departmentRoutes");
 const vendorRouter = require("./routes/vendorRoutes");
 const assetRouter = require("./routes/assetRoutes");
@@ -29,12 +30,13 @@ app.use(cookieParser());
 // Routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/dashboard", dashboardRouter);
 app.use("/api/v1/departments", departmentRouter);
 app.use("/api/v1/vendors", vendorRouter);
 app.use("/api/v1/assets", assetRouter);
 app.use("/api/v1/activities", activityRouter);
 
-app.use((req, res, next) => {
+app.all("", (req, res, next) => {
   next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
 });
 

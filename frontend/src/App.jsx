@@ -18,6 +18,7 @@ import Login from "./pages/Login";
 import PageNotFound from "./pages/PageNotFound";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { AuthProvider } from "./contexts/AuthContext";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const router = createBrowserRouter(
         <Route path="vendors" element={<Vendors />} />
         <Route path="users" element={<Users />} />
         <Route path="activities" element={<Activities />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
 
       {/* Fallback */}

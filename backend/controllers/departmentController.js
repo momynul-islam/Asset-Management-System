@@ -6,6 +6,7 @@ const {
   getChangesDescription,
   emitEvent,
 } = require("../utils/helper");
+const { default: mongoose } = require("mongoose");
 
 exports.createDepartment = catchAsync(async (req, res) => {
   const newDepartment = await Department.create(req.body);
@@ -28,17 +29,17 @@ exports.createDepartment = catchAsync(async (req, res) => {
 });
 
 exports.updateDepartment = catchAsync(async (req, res, next) => {
-  const oldDepartment = await Department.findById(req.params.id);
+  const oldDepartment = await Department.findById(req.params.departmentId);
   if (!oldDepartment) return next(new AppError("Department not found", 404));
 
   const updatedDepartment = await Department.findByIdAndUpdate(
-    req.params.id,
+    req.params.departmentId,
     req.body,
     {
       new: true,
       runValidators: true,
     }
-  );
+  ).populate("headOfDepartment");
 
   const description = getChangesDescription(
     oldDepartment,
@@ -64,7 +65,9 @@ exports.updateDepartment = catchAsync(async (req, res, next) => {
 });
 
 exports.deleteDepartment = catchAsync(async (req, res, next) => {
-  const department = await Department.findByIdAndDelete(req.params.id);
+  const department = await Department.findByIdAndDelete(
+    req.params.departmentId
+  );
   if (!department) return next(new AppError("Department not found", 404));
 
   const activityObject = {
@@ -85,7 +88,8 @@ exports.deleteDepartment = catchAsync(async (req, res, next) => {
 });
 
 exports.getAllDepartments = catchAsync(async (req, res, next) => {
-  const departments = await Department.find();
+  const departments = await Department.find().populate("headOfDepartment");
+
   res.status(200).json({
     status: "success",
     data: departments,
@@ -93,7 +97,7 @@ exports.getAllDepartments = catchAsync(async (req, res, next) => {
 });
 
 exports.getDepartment = catchAsync(async (req, res, next) => {
-  const department = await Department.findById(req.params.id);
+  const department = await Department.findById(req.params.departmentId);
   if (!department)
     return next(new AppError("Department not found with this id", 404));
 
