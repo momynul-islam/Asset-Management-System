@@ -7,7 +7,7 @@ function Activities() {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold mb-4 text-gray-100">Assets</h1>
+      <h1 className="text-2xl font-semibold mb-4 text-gray-100">Activites</h1>
       <ActivityTable
         activities={activities}
         isLoading={isLoading}
