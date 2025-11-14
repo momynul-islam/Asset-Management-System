@@ -31,12 +31,12 @@ const createSendToken = (user, statusCode, req, res, mood) => {
     return res.status(statusCode).json({
       status: "success",
       token,
-      user,
+      data: user,
     });
   }
   res.status(statusCode).json({
     status: "success",
-    user,
+    data: user,
   });
 };
 
