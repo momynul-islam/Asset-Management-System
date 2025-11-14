@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
+    "build": "node build",
     "dev": "nodemon server.js"
   },
   "author": "Md. Momynul Islam Siam",
