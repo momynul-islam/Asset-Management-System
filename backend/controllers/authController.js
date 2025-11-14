@@ -21,6 +21,7 @@ const createSendToken = (user, statusCode, req, res, mood) => {
       ),
       httpOnly: true,
       secure: req.secure || req.headers["x-forwarded-proto"] === "https",
+      sameSite: "none",
     });
   }
 
