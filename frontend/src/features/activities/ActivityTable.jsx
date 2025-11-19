@@ -8,6 +8,7 @@ import { PER_PAGE } from "../../utils/constants";
 import { format } from "date-fns";
 
 function ActivityTable({ activities = [], isLoading, isError }) {
+  const [filterValue, setFilterValue] = useState("assetSerialNumber");
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -23,11 +24,10 @@ function ActivityTable({ activities = [], isLoading, isError }) {
     const filteredData =
       search.trim().length === 0
         ? activities
-        : activities.filter(
-            (activity) =>
-              activity?.vendorCode &&
-              activity?.vendorCode.toLowerCase().includes(search.toLowerCase())
-          );
+        : activities.filter((activity) => {
+            const act = activity?.[filterValue];
+            return act && act.toLowerCase().includes(search.toLowerCase());
+          });
 
     const start = (page - 1) * PER_PAGE;
     const end = start + PER_PAGE;
@@ -48,13 +48,34 @@ function ActivityTable({ activities = [], isLoading, isError }) {
     );
   }
 
+  const filterOptions = [
+    { title: "Asset SerialNumber", value: "assetSerialNumber" },
+    { title: "PerformedBy", value: "performedBy" },
+  ];
+
   return (
     <>
       <div className="flex justify-end mb-4 gap-4">
+        <div>
+          <select
+            name="selectFilter"
+            value="assetSerialNumber"
+            onChange={(e) => {
+              setFilterValue(e.target.value);
+            }}
+            className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
+          >
+            {filterOptions.map((filterOption, idx) => {
+              <option key={idx} value={filterOption.value}>
+                {filterOption.title}
+              </option>;
+            })}
+          </select>
+        </div>
         <Searchbar
           search={search}
           handleSearchChange={handleSearchChange}
-          placeholderLabel="activity by vendor code"
+          placeholderLabel="search activity"
         />
       </div>
       <div className="overflow-x-auto rounded-lg shadow-lg bg-gray-900 text-gray-100">
