@@ -13,7 +13,7 @@ import UserModal from "./UserModal";
 import Searchbar from "../../components/Searchbar";
 import { PER_PAGE } from "../../utils/constants";
 
-const UserTable = ({ users, isLoading, isError }) => {
+const UserTable = ({ users = [], isLoading, isError }) => {
   const { currentUser } = useAuth();
   const [selectedUser, setSelectedUser] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -73,16 +73,14 @@ const UserTable = ({ users, isLoading, isError }) => {
     const filteredData =
       search.trim().length === 0
         ? users
-        : users.filter(
-            (user) =>
-              user?.userId &&
-              user?.userId.toLowerCase().includes(search.toLowerCase())
-          );
+        : users.filter((user) => {
+            const id = user?.userId?.toString().toLowerCase();
+            return id && id.includes(search.toLowerCase());
+          });
 
-    console.log(filteredData);
     const start = (page - 1) * PER_PAGE;
     const end = start + PER_PAGE;
-    setFilteredUsers(filteredData?.slice(start, end) || []);
+    setFilteredUsers(filteredData?.slice(start, end));
 
     setTotalPages(Math.ceil(filteredData.length / PER_PAGE));
   }, [users, page, search]);
