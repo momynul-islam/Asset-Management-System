@@ -11,8 +11,10 @@ import TableBody from "../../components/TableBody";
 import ViewModal from "../../components/ViewModal";
 import VendorModal from "./VendorModal";
 import Searchbar from "../../components/Searchbar";
+import { PER_PAGE } from "../../utils/constants";
+import Pagination from "../../components/Pagination";
 
-const VendorTable = ({ vendors, isLoading, isError }) => {
+const VendorTable = ({ vendors = [], isLoading, isError }) => {
   const { currentUser } = useAuth();
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -70,11 +72,10 @@ const VendorTable = ({ vendors, isLoading, isError }) => {
     const filteredData =
       search.trim().length === 0
         ? vendors
-        : vendors.filter(
-            (vendor) =>
-              vendor?.name &&
-              vendor?.name.toLowerCase().includes(search.toLowerCase())
-          );
+        : vendors.filter((vendor) => {
+            const vendorName = vendor?.name?.toString().toLowerCase();
+            return vendorName && vendorName.includes(search.toLowerCase());
+          });
 
     const start = (page - 1) * PER_PAGE;
     const end = start + PER_PAGE;
@@ -96,7 +97,7 @@ const VendorTable = ({ vendors, isLoading, isError }) => {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 gap-4">
         <Searchbar
           search={search}
           handleSearchChange={handleSearchChange}
