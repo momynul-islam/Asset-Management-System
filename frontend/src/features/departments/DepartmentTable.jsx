@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { FiPlus } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -10,13 +10,25 @@ import TableHeader from "../../components/TableHeader";
 import TableBody from "../../components/TableBody";
 import ViewModal from "../../components/ViewModal";
 import DepartmentModal from "./DepartmentModal";
+import Searchbar from "../../components/Searchbar";
+import Pagination from "../../components/Pagination";
+import { PER_PAGE } from "../../utils/constants";
 
-function DepartmentTable({ departments, isLoading, isError }) {
+function DepartmentTable({ departments = [], isLoading, isError }) {
   const { currentUser } = useAuth();
   const [selectedDepartment, setSelectedDepartment] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
+  const [filteredDepartments, setFilteredDepartments] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
 
   const handleEditClick = (department) => {
     if (currentUser.role !== "admin") {
@@ -55,6 +67,25 @@ function DepartmentTable({ departments, isLoading, isError }) {
     setIsModalOpen(true);
   };
 
+  // 🧮 Filtering + Pagination logic
+  useEffect(() => {
+    const filteredData =
+      search.trim().length === 0
+        ? departments
+        : departments.filter((department) => {
+            const departmentName = department?.name?.toString().toLowerCase();
+            return (
+              departmentName && departmentName.includes(search.toLowerCase())
+            );
+          });
+
+    const start = (page - 1) * PER_PAGE;
+    const end = start + PER_PAGE;
+    setFilteredDepartments(filteredData.slice(start, end));
+
+    setTotalPages(Math.ceil(filteredData.length / PER_PAGE));
+  }, [departments, page, search]);
+
   if (isLoading) {
     return <Spinner />;
   }
@@ -69,7 +100,12 @@ function DepartmentTable({ departments, isLoading, isError }) {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 gap-4">
+        <Searchbar
+          search={search}
+          handleSearchChange={handleSearchChange}
+          placeholderLabel="department by name"
+        />
         <button
           onClick={handleAddClick}
           className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md text-gray-100"
@@ -101,13 +137,15 @@ function DepartmentTable({ departments, isLoading, isError }) {
               "status",
             ]}
             statusField={true}
-            data={departments}
+            data={filteredDepartments}
             label="department"
             handleViewClick={handleViewClick}
             handleEditClick={handleEditClick}
             handleDeleteClick={handleDeleteClick}
           />
         </table>
+
+        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
       </div>
 
       {isViewModalOpen && (
