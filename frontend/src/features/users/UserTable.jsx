@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { FiPlus } from "react-icons/fi";
 import toast from "react-hot-toast";
@@ -10,6 +10,8 @@ import TableHeader from "../../components/TableHeader";
 import TableBody from "../../components/TableBody";
 import ViewModal from "../../components/ViewModal";
 import UserModal from "./UserModal";
+import Searchbar from "../../components/Searchbar";
+import { PER_PAGE } from "../../utils/constants";
 
 const UserTable = ({ users, isLoading, isError }) => {
   const { currentUser } = useAuth();
@@ -17,6 +19,15 @@ const UserTable = ({ users, isLoading, isError }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
+  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
 
   const handleEditClick = (user) => {
     if (currentUser.role != "admin") {
@@ -57,6 +68,24 @@ const UserTable = ({ users, isLoading, isError }) => {
     setIsModalOpen(true);
   };
 
+  // 🧮 Filtering + Pagination logic
+  useEffect(() => {
+    const filteredData =
+      search.trim().length === 0
+        ? users
+        : users.filter(
+            (user) =>
+              user?.userId &&
+              user?.userId.toLowerCase().includes(search.toLowerCase())
+          );
+
+    const start = (page - 1) * PER_PAGE;
+    const end = start + PER_PAGE;
+    setFilteredUsers(filteredData.slice(start, end));
+
+    setTotalPages(Math.ceil(filteredData.length / PER_PAGE));
+  }, [users, page, search]);
+
   if (isLoading) {
     return <Spinner />;
   }
@@ -70,6 +99,11 @@ const UserTable = ({ users, isLoading, isError }) => {
   return (
     <>
       <div className="flex justify-end mb-4">
+        <Searchbar
+          search={search}
+          handleSearchChange={handleSearchChange}
+          placeholderLabel="user by id"
+        />
         <button
           className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md text-gray-100"
           onClick={handleAddClick}
@@ -93,7 +127,7 @@ const UserTable = ({ users, isLoading, isError }) => {
           />
           <TableBody
             fields={["userId", "name", "email", "designation", "role"]}
-            data={users}
+            data={filteredUsers}
             statusField={false}
             label="user"
             handleViewClick={handleViewClick}
@@ -101,6 +135,8 @@ const UserTable = ({ users, isLoading, isError }) => {
             handleDeleteClick={handleDeleteClick}
           />
         </table>
+
+        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
       </div>
 
       {isViewModalOpen && (
