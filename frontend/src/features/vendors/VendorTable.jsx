@@ -10,6 +10,7 @@ import TableHeader from "../../components/TableHeader";
 import TableBody from "../../components/TableBody";
 import ViewModal from "../../components/ViewModal";
 import VendorModal from "./VendorModal";
+import Searchbar from "../../components/Searchbar";
 
 const VendorTable = ({ vendors, isLoading, isError }) => {
   const { currentUser } = useAuth();
@@ -17,6 +18,15 @@ const VendorTable = ({ vendors, isLoading, isError }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [mode, setMode] = useState("add");
+  const [filteredVendors, setFilteredVendors] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
+  };
 
   const handleEditClick = (vendor) => {
     if (currentUser.role != "admin") {
@@ -55,6 +65,24 @@ const VendorTable = ({ vendors, isLoading, isError }) => {
     setIsModalOpen(true);
   };
 
+  // 🧮 Filtering + Pagination logic
+  useEffect(() => {
+    const filteredData =
+      search.trim().length === 0
+        ? vendors
+        : vendors.filter(
+            (vendor) =>
+              vendor?.name &&
+              vendor?.name.toLowerCase().includes(search.toLowerCase())
+          );
+
+    const start = (page - 1) * PER_PAGE;
+    const end = start + PER_PAGE;
+    setFilteredVendors(filteredData.slice(start, end));
+
+    setTotalPages(Math.ceil(filteredData.length / PER_PAGE));
+  }, [vendors, page, search]);
+
   if (isLoading) {
     return <Spinner />;
   }
@@ -69,6 +97,11 @@ const VendorTable = ({ vendors, isLoading, isError }) => {
   return (
     <>
       <div className="flex justify-end mb-4">
+        <Searchbar
+          search={search}
+          handleSearchChange={handleSearchChange}
+          placeholderLabel="vendor by name"
+        />
         <button
           onClick={handleAddClick}
           className="flex items-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-500 rounded-md text-gray-100"
@@ -103,13 +136,15 @@ const VendorTable = ({ vendors, isLoading, isError }) => {
               "status",
             ]}
             statusField={true}
-            data={vendors}
+            data={filteredVendors}
             label="vendor"
             handleViewClick={handleViewClick}
             handleEditClick={handleEditClick}
             handleDeleteClick={handleDeleteClick}
           />
         </table>
+
+        <Pagination page={page} setPage={setPage} totalPages={totalPages} />
       </div>
 
       {isViewModalOpen && (
