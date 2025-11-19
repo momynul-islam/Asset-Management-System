@@ -14,8 +14,14 @@ import Searchbar from "../../components/Searchbar";
 import { PER_PAGE } from "../../utils/constants";
 
 function AssetTable({ assets = [], isLoading, isError }) {
-  const { currentUser } = useAuth();
+  const filterOptions = [
+    { title: "Asset SerialNumber", value: "assetSerialNumber" },
+    { title: "Asset Name", value: "assetName" },
+    { title: "Category", value: "category" },
+  ];
 
+  const { currentUser } = useAuth();
+  const [filterValue, setFilterValue] = useState("");
   const [selectedAsset, setSelectedAsset] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
@@ -67,18 +73,20 @@ function AssetTable({ assets = [], isLoading, isError }) {
     const filteredData =
       search.trim().length === 0
         ? assets
-        : assets.filter((asset) =>
-            asset.assetName.toLowerCase().includes(search.toLowerCase())
-          );
+        : assets.filter((asset) => {
+            const act = asset?.[filterValue] || asset?.assetSerialNumber;
+            return act && act.toLowerCase().includes(search.toLowerCase());
+          });
 
     const start = (page - 1) * PER_PAGE;
     const end = start + PER_PAGE;
     setFilteredAssets(filteredData.slice(start, end));
 
     setTotalPages(Math.ceil(filteredData.length / PER_PAGE));
-  }, [assets, page, search]);
+  }, [assets, page, search, filterValue]);
 
   if (isLoading) return <Spinner />;
+
   if (isError)
     return (
       <div className="text-red-500 text-center py-10">
@@ -89,6 +97,25 @@ function AssetTable({ assets = [], isLoading, isError }) {
   return (
     <>
       <div className="flex justify-end mb-4 gap-4">
+        <div>
+          <select
+            name="selectFilter"
+            value={filterValue}
+            onChange={(e) => {
+              setFilterValue(e.target.value);
+              setPage(1);
+            }}
+            className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
+          >
+            <option value="">-- Select Filter --</option>
+            {filterOptions.map((filterOption, idx) => (
+              <option key={idx} value={filterOption.value}>
+                {filterOption.title}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <Searchbar
           search={search}
           handleSearchChange={handleSearchChange}
