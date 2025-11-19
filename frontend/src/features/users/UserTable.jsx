@@ -98,7 +98,7 @@ const UserTable = ({ users = [], isLoading, isError }) => {
 
   return (
     <>
-      <div className="flex justify-end mb-4">
+      <div className="flex justify-end mb-4 gap-4">
         <Searchbar
           search={search}
           handleSearchChange={handleSearchChange}
