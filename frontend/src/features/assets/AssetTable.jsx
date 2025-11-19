@@ -74,7 +74,7 @@ function AssetTable({ assets = [], isLoading, isError }) {
       search.trim().length === 0
         ? assets
         : assets.filter((asset) => {
-            const act = asset?.[filterValue] || asset?.assetSerialNumber;
+            const act = asset?.[filterValue] || asset?.SerialNumber;
             return act && act.toLowerCase().includes(search.toLowerCase());
           });
 
