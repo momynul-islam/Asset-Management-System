@@ -8,7 +8,15 @@ import { PER_PAGE } from "../../utils/constants";
 import { format } from "date-fns";
 
 function ActivityTable({ activities = [], isLoading, isError }) {
-  const [filterValue, setFilterValue] = useState("assetSerialNumber");
+  const filterOptions = [
+    { title: "Asset SerialNumber", value: "assetSerialNumber" },
+    { title: "PerformedBy", value: "performedBy" },
+    { title: "User Id", value: "userId" },
+    { title: "Department Code", value: "departmentCode" },
+    { title: "Vendor Code", value: "vendorCode" },
+  ];
+
+  const [filterValue, setFilterValue] = useState("");
   const [filteredActivities, setFilteredActivities] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -25,7 +33,7 @@ function ActivityTable({ activities = [], isLoading, isError }) {
       search.trim().length === 0
         ? activities
         : activities.filter((activity) => {
-            const act = activity?.[filterValue];
+            const act = activity?.[filterValue] || activity?.assetSerialNumber;
             return act && act.toLowerCase().includes(search.toLowerCase());
           });
 
@@ -34,7 +42,7 @@ function ActivityTable({ activities = [], isLoading, isError }) {
     setFilteredActivities(filteredData.slice(start, end));
 
     setTotalPages(Math.ceil(filteredData.length / PER_PAGE));
-  }, [activities, page, search]);
+  }, [activities, page, search, filterValue]);
 
   if (isLoading) {
     return <Spinner />;
@@ -48,28 +56,25 @@ function ActivityTable({ activities = [], isLoading, isError }) {
     );
   }
 
-  const filterOptions = [
-    { title: "Asset SerialNumber", value: "assetSerialNumber" },
-    { title: "PerformedBy", value: "performedBy" },
-  ];
-
   return (
     <>
       <div className="flex justify-end mb-4 gap-4">
         <div>
           <select
             name="selectFilter"
-            value="assetSerialNumber"
+            value={filterValue}
             onChange={(e) => {
               setFilterValue(e.target.value);
+              setPage(1);
             }}
             className="w-full px-3 py-2 rounded-md bg-gray-800 border border-gray-700"
           >
-            {filterOptions.map((filterOption, idx) => {
+            <option value="">-- Select Filter --</option>
+            {filterOptions.map((filterOption, idx) => (
               <option key={idx} value={filterOption.value}>
                 {filterOption.title}
-              </option>;
-            })}
+              </option>
+            ))}
           </select>
         </div>
         <Searchbar
