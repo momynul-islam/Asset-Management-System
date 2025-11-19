@@ -12,6 +12,7 @@ import ViewModal from "../../components/ViewModal";
 import UserModal from "./UserModal";
 import Searchbar from "../../components/Searchbar";
 import { PER_PAGE } from "../../utils/constants";
+import Pagination from "../../components/Pagination";
 
 const UserTable = ({ users = [], isLoading, isError }) => {
   const { currentUser } = useAuth();
