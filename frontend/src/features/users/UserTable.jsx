@@ -82,7 +82,7 @@ const UserTable = ({ users, isLoading, isError }) => {
     console.log(filteredData);
     const start = (page - 1) * PER_PAGE;
     const end = start + PER_PAGE;
-    setFilteredUsers(filteredData.slice(start, end) || []);
+    setFilteredUsers(filteredData?.slice(start, end) || []);
 
     setTotalPages(Math.ceil(filteredData.length / PER_PAGE));
   }, [users, page, search]);
